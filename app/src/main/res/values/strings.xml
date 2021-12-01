@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Smart Poster Evaluator</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="com_auth0_client_id">4OqNMjgDtDrvApYFFwDEOSCMaTjIfiWo</string>
+    <string name="com_auth0_domain">dev-b9xhje67.us.auth0.com</string>
+    <string name="login">Log in</string>
+    <string name="login_passwordless">Log in Passwordless</string>
+    <string name="logout">Log out</string>
+    <string name="poster_id">Enter Poster Id</string>
+    <string name="evaluate">Evaluate</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="noEvidence">No Evidence</string>
+    <string name="superior">Superior</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="four">4</string>
+    <string name="submit">Submit</string>
+    <string name="zero">0</string>
+</resources>
