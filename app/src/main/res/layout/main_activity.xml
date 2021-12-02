@@ -36,6 +36,19 @@
             android:padding="@dimen/activity_general_margin"
             android:text="@string/logout"
             android:textColor="@color/blue_text" />
+
+    <Button
+        android:id="@+id/scanNfc"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/activity_general_margin"
+        android:background="@android:color/white"
+        android:padding="@dimen/activity_general_margin"
+        android:text="@string/Scan"
+        android:textColor="@color/blue_text" />
+
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewPosters"
         android:layout_width="match_parent"

@@ -1,13 +1,21 @@
 package com.auth0.samples;
 
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.nfc.NdefMessage;
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +40,14 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class MainActivity extends Activity {
+
+    public static final String ERROR_DETECTED = "No NFC Tag Detected";
+    NfcAdapter nfcAdapter;
+    PendingIntent pendingIntent;
+    Tag myTag;
+    Context context;
+    Button scanNfc;
+
     private OkHttpClient client = new OkHttpClient();
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
@@ -43,6 +60,29 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         binding = MainActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        scanNfc = binding.scanNfc;
+        context = this;
+        scanNfc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if ((myTag == null)) {
+                    Toast.makeText(context, ERROR_DETECTED, Toast.LENGTH_LONG).show();
+                } else {
+                    //connected to nfctag
+                }
+            }
+        });
+        nfcAdapter = NfcAdapter.getDefaultAdapter(context);
+        if(nfcAdapter == null){
+            Toast.makeText(context, "This device does no support NFC", Toast.LENGTH_LONG).show();
+            finish();
+        }else{
+            readfromIntent(getIntent());
+            pendingIntent = PendingIntent.getActivity(context,0,new Intent(context,getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),0);
+            IntentFilter tagDectected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+            tagDectected.addCategory(Intent.CATEGORY_DEFAULT);
+        }
         Button logoutButton = binding.logout;
         logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,6 +98,51 @@ public class MainActivity extends Activity {
         String accessToken = getIntent().getStringExtra(LoginActivity.EXTRA_ACCESS_TOKEN);
         TextView textView = binding.credentials;
         textView.setText(accessToken);
+    }
+
+    public void readfromIntent(Intent intent){
+        String action = intent.getAction();
+        if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)
+                || NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)
+                || NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
+            Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+            NdefMessage[] msgs = null;
+            if(rawMsgs != null){
+                msgs = new NdefMessage[rawMsgs.length];
+                for (int i = 0; i < rawMsgs.length; i++){
+                    msgs[i] = (NdefMessage) rawMsgs[i];
+                }
+            }
+            buildTagViews(msgs);
+        }
+    }
+
+    public void  buildTagViews(NdefMessage[] msgs){
+        if (msgs == null || msgs.length == 0)return;
+
+        String text = "";
+        byte[] payload = msgs[0].getRecords()[0].getPayload();
+        String textEncoding = ((payload[0] & 128) == 0) ? "UTF-8" : "UTF-16";
+        int languageCodeLength = payload[0] & 0063;
+
+        try{
+            text = new String(payload,languageCodeLength+1,payload.length - languageCodeLength -1,textEncoding);
+        }catch (UnsupportedEncodingException e){
+            Log.d("demo", "UnsupportedEncodingException: " + e.getMessage() );
+        }
+        Log.d("demo", "NFC text: "+ text);
+
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        readfromIntent(intent);
+        if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
+            myTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+        }
+
     }
 
     private void logout() {
@@ -120,7 +205,7 @@ public class MainActivity extends Activity {
                     }
                 } else {
                     String body = response.body().string();
-                    Log.d("demo", "onResponse: Failed to get all posters: \n"+ body);
+                    Log.d("demo", "onResponse: Failed to get all posters: \n" + body);
                 }
             }
         });

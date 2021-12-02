@@ -20,4 +20,5 @@
     <string name="four">4</string>
     <string name="submit">Submit</string>
     <string name="zero">0</string>
+    <string name="Scan">Scan NFC</string>
 </resources>
