@@ -42,7 +42,7 @@ public class PosterAdapter extends RecyclerView.Adapter<PosterAdapter.PosterView
     public void onBindViewHolder(@NonNull PosterViewHolder holder, int position) {
         Poster poster = posters.get(position);
         holder.binding.posterTitle.setText("Title: "+ poster.getTitle());
-        //holder.binding.posterInfo.setText(poster.getParticipants());
+        holder.binding.posterListParticipants.setText(poster.getParticipants());
         holder.binding.itemContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

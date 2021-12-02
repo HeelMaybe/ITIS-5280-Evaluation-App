@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -76,9 +77,9 @@ public class MainActivity extends Activity {
         nfcAdapter = NfcAdapter.getDefaultAdapter(context);
         if(nfcAdapter == null){
             Toast.makeText(context, "This device does no support NFC", Toast.LENGTH_LONG).show();
-            finish();
+            scanNfc.setVisibility(View.GONE);
         }else{
-            readfromIntent(getIntent());
+            readFromIntent(getIntent());
             pendingIntent = PendingIntent.getActivity(context,0,new Intent(context,getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),0);
             IntentFilter tagDectected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
             tagDectected.addCategory(Intent.CATEGORY_DEFAULT);
@@ -96,11 +97,9 @@ public class MainActivity extends Activity {
 
         //Obtain the token from the Intent's extras
         String accessToken = getIntent().getStringExtra(LoginActivity.EXTRA_ACCESS_TOKEN);
-        TextView textView = binding.credentials;
-        textView.setText(accessToken);
     }
 
-    public void readfromIntent(Intent intent){
+    public void readFromIntent(Intent intent){
         String action = intent.getAction();
         if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)
                 || NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)
@@ -138,7 +137,7 @@ public class MainActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        readfromIntent(intent);
+        readFromIntent(intent);
         if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
             myTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         }
@@ -154,7 +153,8 @@ public class MainActivity extends Activity {
 
     private void getAllPosters() {
         binding.recyclerViewPosters.setHasFixedSize(true);
-
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(binding.recyclerViewPosters.getContext(),DividerItemDecoration.VERTICAL);
+        binding.recyclerViewPosters.addItemDecoration(dividerItemDecoration);
         // use a linear layout manager
         layoutManager = new LinearLayoutManager(MainActivity.this);
         binding.recyclerViewPosters.setLayoutManager(layoutManager);
