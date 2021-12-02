@@ -2,6 +2,7 @@ package com.auth0.samples;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -46,10 +47,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         binding = MainActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        Button loginButton = binding.logout;
-        loginButton.setOnClickListener(new View.OnClickListener() {
+        Button logoutButton = binding.logout;
+        logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+                sh.edit().clear().commit();
                 logout();
             }
         });
@@ -68,7 +71,7 @@ public class MainActivity extends Activity {
         finish();
     }
 
-    private void getAllPosters(){
+    private void getAllPosters() {
         binding.recyclerViewPosters.setHasFixedSize(true);
 
         // use a linear layout manager
@@ -81,9 +84,10 @@ public class MainActivity extends Activity {
             }
         });
         binding.recyclerViewPosters.setAdapter(mAdapter);
-
+        SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
         Request request = new Request.Builder()
                 .url(AuthApiHelper.PostersEndpoint)
+                .header("Authorization", "Bearer " + sh.getString(LoginActivity.EXTRA_ACCESS_TOKEN, ""))
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -115,7 +119,7 @@ public class MainActivity extends Activity {
                             }
                         });
                     } catch (JSONException e) {
-                        Log.d("demo", "onResponse:  JSONException" + e.getMessage() );
+                        Log.d("demo", "onResponse:  JSONException" + e.getMessage());
                     }
                 } else {
                     Log.d("demo", "onResponse: Failed to get all posters");
@@ -125,10 +129,10 @@ public class MainActivity extends Activity {
 
     }
 
-    private void evaluate(Poster poster){
+    private void evaluate(Poster poster) {
         Intent intent = new Intent(this, EvaluationActivity.class);
         intent.putExtra(LoginActivity.EXTRA_CLEAR_CREDENTIALS, true);
-        intent.putExtra(POSTER_KEY,poster);
+        intent.putExtra(POSTER_KEY, poster);
         startActivity(intent);
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -37,10 +38,15 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         auth0 = new Auth0(this);
-
+        Log.d("demo", "onCreate: " +auth0.getLogoutUrl());
         //Check if the activity was launched to log the user out
         if (getIntent().getBooleanExtra(EXTRA_CLEAR_CREDENTIALS, false)) {
             logout();
+        }
+        SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+        String s1 = sh.getString(LoginActivity.EXTRA_ACCESS_TOKEN, "");
+        if (!s1.equals("")) {
+            showNextActivity();
         }
     }
 
@@ -49,18 +55,16 @@ public class LoginActivity extends AppCompatActivity {
                 .withScheme("demo")
                 .withAudience(String.format("https://%s/userinfo", getString(R.string.com_auth0_domain)))
                 .start(this, new Callback<Credentials, AuthenticationException>() {
-
                     @Override
                     public void onFailure(@NonNull final AuthenticationException exception) {
                         Toast.makeText(LoginActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-
                     @Override
                     public void onSuccess(@Nullable final Credentials credentials) {
-//                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getParent());
-//                        SharedPreferences.Editor editor = preferences.edit();
-//                        editor.putString(EXTRA_ACCESS_TOKEN,credentials.getAccessToken());
-//                        editor.apply();
+                        SharedPreferences sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString(EXTRA_ACCESS_TOKEN, credentials.getAccessToken());
+                        editor.commit();
 
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         intent.putExtra(EXTRA_ACCESS_TOKEN, credentials.getAccessToken());
@@ -76,13 +80,15 @@ public class LoginActivity extends AppCompatActivity {
                 .start(this, new Callback<Void, AuthenticationException>() {
                     @Override
                     public void onSuccess(@Nullable Void payload) {
-
+                        // The user has been logged out!
+                        Log.d("demo", "onSuccess: logged Out");
                     }
 
                     @Override
                     public void onFailure(@NonNull AuthenticationException error) {
                         //Log out canceled, keep the user logged in
                         showNextActivity();
+                        Log.d("demo", "onFailure: not logged out");
                     }
                 });
     }

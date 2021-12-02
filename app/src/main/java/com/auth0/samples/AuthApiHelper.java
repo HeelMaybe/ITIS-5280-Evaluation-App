@@ -12,8 +12,6 @@ public class AuthApiHelper {
     public static String PosterEndpoint = AuthApiHelper.BaseUrl + "/poster";
     public static String PostersEndpoint = AuthApiHelper.BaseUrl + "/posters";
 
-
-
     public static String decode(String JWTEncoded) {
         try {
             String[] split = JWTEncoded.split("\\.");

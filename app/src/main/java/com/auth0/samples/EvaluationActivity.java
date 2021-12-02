@@ -1,5 +1,7 @@
 package com.auth0.samples;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -72,10 +74,10 @@ public class EvaluationActivity extends AppCompatActivity {
         currentQuestion = 0;
         questionText.setText(questions.get(currentQuestion).getQuestionText());
 
-        if(getIntent() != null && getIntent().getExtras() != null && getIntent().hasExtra(MainActivity.POSTER_KEY)){
-            Poster poster = (Poster)getIntent().getSerializableExtra(MainActivity.POSTER_KEY);
+        if (getIntent() != null && getIntent().getExtras() != null && getIntent().hasExtra(MainActivity.POSTER_KEY)) {
+            Poster poster = (Poster) getIntent().getSerializableExtra(MainActivity.POSTER_KEY);
             Log.d("demo", "onCreate: PosterId: " + poster.getId() + " Poster Title: " + poster.getTitle());
-            posterTitle.setText("Title: "+ poster.getTitle());
+            posterTitle.setText("Title: " + poster.getTitle());
             posterParticipants.setText("Participants: " + poster.getParticipants());
         }
 
@@ -83,56 +85,71 @@ public class EvaluationActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (radioGroup.getCheckedRadioButtonId() == -1) {
-                    Toast.makeText(EvaluationActivity.this, "You must answer before submitting", Toast.LENGTH_SHORT).show();
-                }
-                Gson gson = new Gson();
-                String json = gson.toJson(answers);
-                //add formBody
-                RequestBody formBody = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8") );
-
-                if(getIntent() != null && getIntent().getExtras() != null && getIntent().hasExtra(MainActivity.POSTER_KEY)){
-                       Poster poster = (Poster)getIntent().getSerializableExtra(MainActivity.POSTER_KEY);
-                    //add posterID
-                    Request request = new Request.Builder()
-                            .url(AuthApiHelper.PosterEndpoint + "/" + String.valueOf(poster.getId()))
-                            .post(formBody)
-                            .build();
-
-                    client.newCall(request).enqueue(new Callback() {
+                    runOnUiThread(new Runnable() {
                         @Override
-                        public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(EvaluationActivity.this, "Unexpected error occurred.", Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                        public void run() {
+                            Toast.makeText(EvaluationActivity.this, "You must answer before submitting", Toast.LENGTH_SHORT).show();
                         }
+                    });
+                } else {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(answers);
+                    //add formBody
+                    RequestBody formBody = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
 
-                        @Override
-                        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                            String body = response.body().string();
-                            if(response.isSuccessful()) {
-                                Log.d("demo", "onResponse: body" + body);
-                            } else {
-                                try {
-                                    JSONObject json = new JSONObject(body);
-                                    String message = json.getString("error");
+                    if (getIntent() != null && getIntent().getExtras() != null && getIntent().hasExtra(MainActivity.POSTER_KEY)) {
+                        Poster poster = (Poster) getIntent().getSerializableExtra(MainActivity.POSTER_KEY);
+                        //add posterID
+                        SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+                        Request request = new Request.Builder()
+                                .url(AuthApiHelper.PosterEndpoint + "/" + String.valueOf(poster.getId()))
+                                .header("Authorization", "Bearer " + sh.getString(LoginActivity.EXTRA_ACCESS_TOKEN, ""))
+                                .post(formBody)
+                                .build();
 
+                        client.newCall(request).enqueue(new Callback() {
+                            @Override
+                            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(EvaluationActivity.this, "Unexpected error occurred.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                                String body = response.body().string();
+                                if (response.isSuccessful()) {
+                                    Log.d("demo", "onResponse: body" + body);
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(EvaluationActivity.this, message, Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(EvaluationActivity.this, "Unexpected error occurred.", Toast.LENGTH_SHORT).show();
                                         }
                                     });
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+                                    goBackToMain();
+                                } else {
+                                    try {
+                                        JSONObject json = new JSONObject(body);
+                                        String message = json.getString("error");
+
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(EvaluationActivity.this, message, Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
-                        }
-                    });
-                }
+                        });
+                    }
 
+                }
 
             }
         });
@@ -153,7 +170,7 @@ public class EvaluationActivity extends AppCompatActivity {
                     } else if (checkedId == R.id.radioButton4) {
                         next.setVisibility(View.VISIBLE);
                     }
-                }else{
+                } else {
                     if (checkedId == R.id.radioButton0) {
                         submit.setVisibility(View.VISIBLE);
                     } else if (checkedId == R.id.radioButton1) {
@@ -188,7 +205,6 @@ public class EvaluationActivity extends AppCompatActivity {
                         goToNextQuestion(4);
                     }
                 }
-
             }
         });
         previous.setVisibility(View.INVISIBLE);
@@ -201,15 +217,15 @@ public class EvaluationActivity extends AppCompatActivity {
     }
 
     private void goToNextQuestion(int checked) {
-        if(answers.get(questions.get(currentQuestion).getId()) == null ||answers.get(questions.get(currentQuestion).getId()) != checked ){
+        if (answers.get(questions.get(currentQuestion).getId()) == null || answers.get(questions.get(currentQuestion).getId()) != checked) {
             if (currentQuestion < questions.size() - 1) {
                 //record answer
                 answers.put(questions.get(currentQuestion).getId(), checked);
                 //index to next question
                 currentQuestion++;
-                if(currentQuestion == 0){
+                if (currentQuestion == 0) {
                     previous.setVisibility(View.INVISIBLE);
-                }else{
+                } else {
                     previous.setVisibility(View.VISIBLE);
                 }
                 //uncheckBtn
@@ -223,10 +239,10 @@ public class EvaluationActivity extends AppCompatActivity {
                 answers.put(questions.get(currentQuestion).getId(), checked);
                 //submit hashmap
             }
-        }else{
-            if(currentQuestion == 0){
+        } else {
+            if (currentQuestion == 0) {
                 previous.setVisibility(View.INVISIBLE);
-            }else{
+            } else {
                 previous.setVisibility(View.VISIBLE);
             }
             currentQuestion++;
@@ -250,17 +266,17 @@ public class EvaluationActivity extends AppCompatActivity {
         }
     }
 
-    private void resetToPreviousRadioButton(){
-        if(answers.get(questions.get(currentQuestion).getId()) != null){
-            if(answers.get(questions.get(currentQuestion).getId()) == 0){
+    private void resetToPreviousRadioButton() {
+        if (answers.get(questions.get(currentQuestion).getId()) != null) {
+            if (answers.get(questions.get(currentQuestion).getId()) == 0) {
                 btn0.setChecked(true);
-            }else if(answers.get(questions.get(currentQuestion).getId()) == 1){
+            } else if (answers.get(questions.get(currentQuestion).getId()) == 1) {
                 btn1.setChecked(true);
-            }else if(answers.get(questions.get(currentQuestion).getId()) == 2){
+            } else if (answers.get(questions.get(currentQuestion).getId()) == 2) {
                 btn2.setChecked(true);
-            }else if(answers.get(questions.get(currentQuestion).getId()) == 3){
+            } else if (answers.get(questions.get(currentQuestion).getId()) == 3) {
                 btn3.setChecked(true);
-            }else if(answers.get(questions.get(currentQuestion).getId()) == 4){
+            } else if (answers.get(questions.get(currentQuestion).getId()) == 4) {
                 btn4.setChecked(true);
             }
         }
@@ -285,5 +301,10 @@ public class EvaluationActivity extends AppCompatActivity {
         questions.add(question6);
         Question question7 = new Question("7. The team successfully explained the scope and results of their project in no more than 5 minutes", 7);
         questions.add(question7);
+    }
+
+    private void goBackToMain() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }
