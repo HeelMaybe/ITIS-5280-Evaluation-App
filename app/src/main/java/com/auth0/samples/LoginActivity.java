@@ -14,10 +14,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.auth0.android.Auth0;
+import com.auth0.android.authentication.AuthenticationAPIClient;
 import com.auth0.android.authentication.AuthenticationException;
 import com.auth0.android.callback.Callback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
+import com.auth0.android.result.UserProfile;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -25,6 +27,7 @@ public class LoginActivity extends AppCompatActivity {
 
     public static final String EXTRA_CLEAR_CREDENTIALS = "com.auth0.CLEAR_CREDENTIALS";
     public static final String EXTRA_ACCESS_TOKEN = "com.auth0.ACCESS_TOKEN";
+    public static final String EXTRA_USER_ID = "EXTRA_USER_ID";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,7 +41,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         auth0 = new Auth0(this);
-        Log.d("demo", "onCreate: " +auth0.getLogoutUrl());
         //Check if the activity was launched to log the user out
         if (getIntent().getBooleanExtra(EXTRA_CLEAR_CREDENTIALS, false)) {
             logout();
@@ -48,6 +50,34 @@ public class LoginActivity extends AppCompatActivity {
         if (!s1.equals("")) {
             showNextActivity();
         }
+    }
+
+    private void showUserProfile(String accessToken) {
+        AuthenticationAPIClient client = new AuthenticationAPIClient(auth0);
+
+        // With the access token, call `userInfo` and get the profile from Auth0.
+        client.userInfo(accessToken)
+                .start(new Callback<UserProfile, AuthenticationException>() {
+                    @Override
+                    public void onSuccess(UserProfile userProfile) {
+                        SharedPreferences sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString(EXTRA_USER_ID, userProfile.getId());
+                        editor.commit();
+
+
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        intent.putExtra(EXTRA_ACCESS_TOKEN, accessToken);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull AuthenticationException e) {
+
+                    }
+                });
+
     }
 
     private void login() {
@@ -65,11 +95,9 @@ public class LoginActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString(EXTRA_ACCESS_TOKEN, credentials.getAccessToken());
                         editor.commit();
+                        Log.d("demo", credentials.getAccessToken());
 
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.putExtra(EXTRA_ACCESS_TOKEN, credentials.getAccessToken());
-                        startActivity(intent);
-                        finish();
+                        showUserProfile(credentials.getAccessToken());
                     }
                 });
     }

@@ -30,10 +30,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * Created by lbalmaceda on 5/10/17.
- */
-
 public class MainActivity extends Activity {
     private OkHttpClient client = new OkHttpClient();
     private RecyclerView.Adapter mAdapter;
@@ -88,6 +84,7 @@ public class MainActivity extends Activity {
         Request request = new Request.Builder()
                 .url(AuthApiHelper.PostersEndpoint)
                 .header("Authorization", "Bearer " + sh.getString(LoginActivity.EXTRA_ACCESS_TOKEN, ""))
+                .header("userid", sh.getString(LoginActivity.EXTRA_USER_ID, ""))
                 .build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -122,11 +119,11 @@ public class MainActivity extends Activity {
                         Log.d("demo", "onResponse:  JSONException" + e.getMessage());
                     }
                 } else {
-                    Log.d("demo", "onResponse: Failed to get all posters");
+                    String body = response.body().string();
+                    Log.d("demo", "onResponse: Failed to get all posters: \n"+ body);
                 }
             }
         });
-
     }
 
     private void evaluate(Poster poster) {

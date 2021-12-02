@@ -104,7 +104,7 @@ public class EvaluationActivity extends AppCompatActivity {
                         Request request = new Request.Builder()
                                 .url(AuthApiHelper.PosterEndpoint + "/" + String.valueOf(poster.getId()))
                                 .header("Authorization", "Bearer " + sh.getString(LoginActivity.EXTRA_ACCESS_TOKEN, ""))
-                                .post(formBody)
+                                .header("userid", sh.getString(LoginActivity.EXTRA_USER_ID, ""))                                .post(formBody)
                                 .build();
 
                         client.newCall(request).enqueue(new Callback() {
