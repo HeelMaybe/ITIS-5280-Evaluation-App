@@ -1,6 +1,6 @@
 
 # EvaluationApp
-This API is the project #10 for the class **ITIS 5280** at UNCC. It consists of a server to support a Mobile Application for authenticating. 
+This API is the project #10 for the class **ITIS 5280** at UNCC. It consists of a server to support a Mobile Application for evaluating posters. 
 
 
 ## Technologies
