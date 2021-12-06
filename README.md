@@ -11,8 +11,9 @@ In order to develop this app, we used:
 	- Material Design as the style guideline
 	- Auth0 for authenticating
 - NodeJS **back-end**
-	- JWT Tokens for security tokens
+	- Auth0 for authenticating
 	- MongoDB as the database
+	- Twilio SMS 
 
 ## Data Design
 The main collections in the database are the following:
