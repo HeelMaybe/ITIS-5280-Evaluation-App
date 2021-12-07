@@ -27,7 +27,7 @@ The routes of the API endpoints are the following:
 - POST `/api/poster`: post evaluation for a single poster
 
 ## External Resources
-- Video explaining the app: 
+- Video explaining the app: https://youtu.be/EMjRUo0D9HM
 
 ## Support
 
