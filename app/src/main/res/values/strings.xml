@@ -22,4 +22,5 @@
     <string name="zero">0</string>
     <string name="Scan">Scan NFC</string>
     <string name="smartposter">Smart Poster Evaluator</string>
+    <string name="loginQR">Login with QR Code</string>
 </resources>

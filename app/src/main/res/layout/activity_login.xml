@@ -25,14 +25,16 @@
             android:textColor="@color/blue_text" />
 
     <Button
-        android:id="@+id/loginButtonPasswordless"
+        android:id="@+id/loginButtonQRCode"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:layout_gravity="center"
+        android:layout_marginTop="10dp"
         android:background="@android:color/white"
         android:padding="@dimen/activity_general_margin"
-        android:text="@string/login_passwordless"
-        android:textColor="@color/blue_text" />
+        android:text="@string/loginQR"
+        android:textAllCaps="true"
+        android:textColor="@color/blue_text"
+        android:visibility="visible" />
 
 </LinearLayout>

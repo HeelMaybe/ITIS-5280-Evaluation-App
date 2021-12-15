@@ -92,6 +92,22 @@ public class EvaluationActivity extends AppCompatActivity {
                         }
                     });
                 } else {
+                    //check which button is checked for answer
+                    int checkedId = radioGroup.getCheckedRadioButtonId();
+                    if (currentQuestion == 6) {
+                        if (checkedId == R.id.radioButton0) {
+                            //record answer,goto next question, uncheck button, hide next button
+                            goToNextQuestion(0);
+                        } else if (checkedId == R.id.radioButton1) {
+                            goToNextQuestion(1);
+                        } else if (checkedId == R.id.radioButton2) {
+                            goToNextQuestion(2);
+                        } else if (checkedId == R.id.radioButton3) {
+                            goToNextQuestion(3);
+                        } else if (checkedId == R.id.radioButton4) {
+                            goToNextQuestion(4);
+                        }
+                    }
                     Gson gson = new Gson();
                     String json = gson.toJson(answers);
                     //add formBody
@@ -126,7 +142,7 @@ public class EvaluationActivity extends AppCompatActivity {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(EvaluationActivity.this, "Unexpected error occurred.", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(EvaluationActivity.this, "Submission was successful .", Toast.LENGTH_SHORT).show();
                                         }
                                     });
                                     goBackToMain();

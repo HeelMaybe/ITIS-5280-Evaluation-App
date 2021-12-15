@@ -43,11 +43,6 @@ import okhttp3.Response;
 public class MainActivity extends Activity {
 
     public static final String ERROR_DETECTED = "No NFC Tag Detected";
-    NfcAdapter nfcAdapter;
-    PendingIntent pendingIntent;
-    Tag myTag;
-    Context context;
-    Button scanNfc;
 
     private OkHttpClient client = new OkHttpClient();
     private RecyclerView.Adapter mAdapter;
@@ -62,30 +57,7 @@ public class MainActivity extends Activity {
         binding = MainActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        scanNfc = binding.scanNfc;
-        context = this;
-        scanNfc.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if ((myTag == null)) {
-                    Toast.makeText(context, ERROR_DETECTED, Toast.LENGTH_LONG).show();
-                } else {
-                    //connected to nfctag
-                }
-            }
-        });
-        nfcAdapter = NfcAdapter.getDefaultAdapter(context);
-        if(nfcAdapter == null){
-            Toast.makeText(context, "This device does no support NFC", Toast.LENGTH_LONG).show();
-            scanNfc.setVisibility(View.GONE);
-        }else{
-            readFromIntent(getIntent());
-            pendingIntent = PendingIntent.getActivity(context,0,new Intent(context,getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),0);
-            IntentFilter tagDectected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
-            tagDectected.addCategory(Intent.CATEGORY_DEFAULT);
-        }
-        Button logoutButton = binding.logout;
-        logoutButton.setOnClickListener(new View.OnClickListener() {
+        binding.logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
@@ -99,51 +71,6 @@ public class MainActivity extends Activity {
         String accessToken = getIntent().getStringExtra(LoginActivity.EXTRA_ACCESS_TOKEN);
     }
 
-    public void readFromIntent(Intent intent){
-        String action = intent.getAction();
-        if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)
-                || NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)
-                || NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
-            Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
-            NdefMessage[] msgs = null;
-            if(rawMsgs != null){
-                msgs = new NdefMessage[rawMsgs.length];
-                for (int i = 0; i < rawMsgs.length; i++){
-                    msgs[i] = (NdefMessage) rawMsgs[i];
-                }
-            }
-            buildTagViews(msgs);
-        }
-    }
-
-    public void  buildTagViews(NdefMessage[] msgs){
-        if (msgs == null || msgs.length == 0)return;
-
-        String text = "";
-        byte[] payload = msgs[0].getRecords()[0].getPayload();
-        String textEncoding = ((payload[0] & 128) == 0) ? "UTF-8" : "UTF-16";
-        int languageCodeLength = payload[0] & 0063;
-
-        try{
-            text = new String(payload,languageCodeLength+1,payload.length - languageCodeLength -1,textEncoding);
-        }catch (UnsupportedEncodingException e){
-            Log.d("demo", "UnsupportedEncodingException: " + e.getMessage() );
-        }
-        Log.d("demo", "NFC text: "+ text);
-
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        readFromIntent(intent);
-        if(NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())){
-            myTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-        }
-
-    }
-
     private void logout() {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.putExtra(LoginActivity.EXTRA_CLEAR_CREDENTIALS, true);
@@ -153,7 +80,7 @@ public class MainActivity extends Activity {
 
     private void getAllPosters() {
         binding.recyclerViewPosters.setHasFixedSize(true);
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(binding.recyclerViewPosters.getContext(),DividerItemDecoration.VERTICAL);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(binding.recyclerViewPosters.getContext(), DividerItemDecoration.VERTICAL);
         binding.recyclerViewPosters.addItemDecoration(dividerItemDecoration);
         // use a linear layout manager
         layoutManager = new LinearLayoutManager(MainActivity.this);
@@ -166,9 +93,13 @@ public class MainActivity extends Activity {
         });
         binding.recyclerViewPosters.setAdapter(mAdapter);
         SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
+        //Log.d("demo", "token: "+ "appSession=" + sh.getString(LoginActivity.EXTRA_JWT_TOKEN, ""));
         Request request = new Request.Builder()
                 .url(AuthApiHelper.PostersEndpoint)
                 .header("Authorization", "Bearer " + sh.getString(LoginActivity.EXTRA_ACCESS_TOKEN, ""))
+                //.header("Cookie", "appSession=" + sh.getString(LoginActivity.EXTRA_JWT_TOKEN, ""))
+                .header("Cookie", "appSession=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwiaWF0IjoxNjM5MDEwOTA2LCJ1YXQiOjE2MzkwMTEyMzgsImV4cCI6MTYzOTA5NzYzOH0..MIiOSJfMywsvOCmO.rWwo9vOoTD_5f6W-cwB4I8qnGMSfcq9YFif7EHO_E5mrETUz7UPJb7pComhs92HQDYoBi8_RhC_zbA2vQcJyss-uaawhzBkswb_sKqZKBw_dIalHj4RJWubpY-OgbsEFeGhoLUroFxsfQkapU_lMaLoRIJ2phg3SRY8DLF1SPF77_0wHxlEbENyEOO6YmURZrLfL-YHg3VlZcmwiIFstPfc-8ZdYWKbBwvlCC24gXLzUOypFRRIjGrYzMAMWIy930rR2STkxqU2YuieKgzDtvlO0PavE0ub0AtoGFKEyKidibEIwjX3Yu8sdlG4upT53aacw2q7-DRs7Gsahg3kv33rhgFz12duzls1RAf_3zynDArGLX0gAIAhX0-XnA2eMfOh0er1pH9bPeCpM8kHyHHXbhVyIzP1n5dSSSdnaHXIefqusL_RhKY-SN0wHNTFuOSZZ9Lm-cnDXCEcO1BvWs_chiKHVm2JmsIlhn7N_dbvLVLEpwhFuprpiKnijQUUPRIJeInyvrBVE0k3FAUcJwdSD_Y_fPyDcxY2MtAnkADjP-6_UEouXUak95kxxo9_v69y7B7scfbbkq5lsiIWl6Eml_fErfzZf5uz5W1gLUBglpW1TbVxaPyyMo4lHxD0_FLa0x-BxtfLVVdkvFEr5A4-m7VK2IOOajmcu_v-d3IXPNWsx5kupMOejk58nXabBnZ06r4TLRVaPLUbUA2HwjBkxtEFI_j3_xFm_sIv72xGFI_tNjZZc5YWqLxNFvyyKHWLmL7mekwWfNDVZxvmekM44SXFMinV32hi8DHX9QEOoTkbGV9hVDOJUrgWUR3zvn3dAWA2G5yqkT8GIW5AaDbisV2u5EXEbQKwf9gSO_8kpMHEQpkdNkIgJ6v8-ADFeY-GNzU9_rsNfexEcGPxCQLCEolC-Zwo5cHkPAMrvOB00CbQdSPsb7fe14ZLlxBB9jKamTdjgzpDa1GveZN2rvTxVB_v4sL1QocCtCr9DnqbsTAy0s631YOT7UyomjLEntaL4RYLqlpsbnkvBsVZMljuqFTgK3ZGcAF1j7HP64NuHhFwBCwb7wtL0OP7qkQyt5MHYQJsJk8as89nSAXTNHGj8UT_SSqOYL7D27GT96NXvqmZkZvFBL_20jl4ptVcZNVo_sPgtWbV8ywzikVnHew1Ue5SNVKz3-sOzyqnnaN6jdyQHcEpDJf1fBNWGTLeoxKDJjtPFASWeBXa2KW7hDHGWstQvJtMycse_qPWwCKz6_FwvA-gV9RH2V8ok4pPcDhbsCL5rlu1cvxY6jXm0FowcdfBJrtIjyIwoyD99jyPfEuPowqLYopXvadQBhKpRARDTghyUJt_11ue92i0yJL4TuZnaor-NSVkWCK6w--Tb7a99etMlGkaqGB42_-_FOCxAO2jCjIpKgg7ig89hDhEefKkAG0fU6q0TiwW-tgzHy_Ji5ZDTaqAFbErS_0er2xGjsC3Bb2mWxZXVIW1tjkNbJ_4ZdHX_3NKXfR36_1bg_H9wSa-5bDicy3G1ZBQK9YenROC1GS2e8b8yiZRG6RIa.wpH4MKTfkjy-YND_zNFEXQ")
+
                 .header("userid", sh.getString(LoginActivity.EXTRA_USER_ID, ""))
                 .build();
         client.newCall(request).enqueue(new Callback() {
