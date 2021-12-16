@@ -19,7 +19,9 @@ In order to develop this app, we used:
 The main collections in the database are the following:
 |Collection Name |Description                    		 |Properties				   |
 |----------------|---------------------------------------|-----------------------------|
-|`users`		 |Information of the users       		 | `name`, `age`, `weight`, `email (unique key)`, `salt`, `hash`|
+|`Posters`		 |Information of the posters       		 | `Title`, `Participants`, `NFC Tag`, `current score`, `Evaluation Details`|
+|`Examiners`		 |Information of the examiners       		 | `name`,  `email `, `creation date`, `status`|
+
 
 ## Routes
 The routes of the API endpoints are the following:
