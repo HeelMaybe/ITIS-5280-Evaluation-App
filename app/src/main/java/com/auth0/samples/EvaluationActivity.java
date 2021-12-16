@@ -117,52 +117,78 @@ public class EvaluationActivity extends AppCompatActivity {
                         Poster poster = (Poster) getIntent().getSerializableExtra(MainActivity.POSTER_KEY);
                         //add posterID
                         SharedPreferences sh = getSharedPreferences("MySharedPref", MODE_PRIVATE);
-                        Request request = new Request.Builder()
-                                .url(AuthApiHelper.PosterEndpoint + "/" + String.valueOf(poster.getId()))
-                                .header("Authorization", "Bearer " + sh.getString(LoginActivity.EXTRA_ACCESS_TOKEN, ""))
-                                .header("userid", sh.getString(LoginActivity.EXTRA_USER_ID, ""))                                .post(formBody)
-                                .build();
 
-                        client.newCall(request).enqueue(new Callback() {
+
+                        Gson gson1 = new Gson();
+                        String json1 = gson1.toJson(new TokenRequest());
+                        //add formBody
+                        RequestBody formBody1 = RequestBody.create(json1, MediaType.parse("application/json; charset=utf-8"));
+                        Request tokenRequest = new Request.Builder()
+                                .url("https://dev-b9xhje67.us.auth0.com/oauth/token")
+                                .header("content-type", "application/json")
+                                .header("userid", sh.getString(LoginActivity.EXTRA_USER_ID, ""))
+                                .post(formBody1)
+                                .build();
+                        client.newCall(tokenRequest).enqueue(new Callback() {
                             @Override
                             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(EvaluationActivity.this, "Unexpected error occurred.", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+
                             }
 
                             @Override
                             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                                 String body = response.body().string();
-                                if (response.isSuccessful()) {
-                                    Log.d("demo", "onResponse: body" + body);
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(EvaluationActivity.this, "Submission was successful .", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                    goBackToMain();
-                                } else {
-                                    try {
-                                        JSONObject json = new JSONObject(body);
-                                        String message = json.getString("error");
+                                TokenResponse tokenResponse = new Gson().fromJson(body,TokenResponse.class);
+                                Request request = new Request.Builder()
+                                        .url(AuthApiHelper.PosterEndpoint + "/" + String.valueOf(poster.getId()))
+                                        .header("Authorization", "Bearer " + tokenResponse.access_token)
+                                        .header("userid", sh.getString(LoginActivity.EXTRA_USER_ID, ""))
+                                        .post(formBody)
+                                        .build();
 
+                                client.newCall(request).enqueue(new Callback() {
+                                    @Override
+                                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                Toast.makeText(EvaluationActivity.this, message, Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(EvaluationActivity.this, "Unexpected error occurred.", Toast.LENGTH_SHORT).show();
                                             }
                                         });
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
                                     }
-                                }
+
+                                    @Override
+                                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                                        String body = response.body().string();
+                                        if (response.isSuccessful()) {
+                                            Log.d("demo", "onResponse: body" + body);
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Toast.makeText(EvaluationActivity.this, "Submission was successful .", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                            goBackToMain();
+                                        } else {
+                                            try {
+                                                JSONObject json = new JSONObject(body);
+                                                String message = json.getString("error");
+
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        Toast.makeText(EvaluationActivity.this, message, Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                });
                             }
                         });
+
                     }
 
                 }

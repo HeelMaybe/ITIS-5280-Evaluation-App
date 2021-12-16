@@ -113,9 +113,7 @@ public class LoginActivity extends AppCompatActivity implements ImageAnalysis.An
                             public void onSuccess(List<Barcode> barcodes) {
                                 for (Barcode barcode: barcodes) {
                                     Rect bounds = barcode.getBoundingBox();
-
                                     Point[] corners = barcode.getCornerPoints();
-
                                     String rawValue = barcode.getRawValue();
                                     Log.d("demo", "onSuccess: read QRCode: " + rawValue);
                                     SharedPreferences sharedPreferences = getSharedPreferences("MySharedPref", MODE_PRIVATE);
@@ -170,19 +168,16 @@ public class LoginActivity extends AppCompatActivity implements ImageAnalysis.An
                         editor.putString(EXTRA_USER_ID, userProfile.getId());
                         editor.commit();
 
-
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         intent.putExtra(EXTRA_ACCESS_TOKEN, accessToken);
                         startActivity(intent);
                         finish();
                     }
-
                     @Override
                     public void onFailure(@NonNull AuthenticationException e) {
 
                     }
                 });
-
     }
 
     private void login() {

@@ -8,7 +8,9 @@ import java.io.UnsupportedEncodingException;
 public class AuthApiHelper {
 
     //public static String BaseUrl = "https://958e-2603-6080-4305-f600-7816-86ed-83e4-a96.ngrok.io/api";
-    public static String BaseUrl = "https://itis5280-project10.herokuapp.com/api";
+    //public static String BaseUrl = "https://itis5280-project10.herokuapp.com/api";
+    public static String BaseUrl = "https://itis5280-project10-api.herokuapp.com/api";
+
     public static String PosterEndpoint = AuthApiHelper.BaseUrl + "/poster";
     public static String PostersEndpoint = AuthApiHelper.BaseUrl + "/posters";
 
