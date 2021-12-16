@@ -30,6 +30,7 @@ The routes of the API endpoints are the following:
 
 ## External Resources
 - Video explaining the app: https://youtu.be/EMjRUo0D9HM
+- Update Video explaining the changes to the app(12/15/2021): https://youtu.be/13CTIR8ZxqU 
 
 ## Support
 
